@@ -44,18 +44,18 @@ public class AppTest {
     public static void setUp() {
         System.setProperty("org.jboss.logging.provider", "slf4j");
     }
-    
+
     @Entity
     @Table(catalog = "", name = "student")
     static final class Student {
 
         @Id
         private int id;
-        
+
         private String name;
-        
+
         private int age;
-        
+
         @Column(name = "class")
         private int clazz;
 
@@ -90,7 +90,7 @@ public class AppTest {
         public void setClazz(int clazz) {
             this.clazz = clazz;
         }
-        
+
         @Override
         public String toString() {
             return this.getClass().getName() + "@" + String.format("0x%08X", System.identityHashCode(this)) + "{id = " + id + ", name = " + name + ", age = " + age + ", class = " + clazz + "}";
@@ -120,12 +120,63 @@ public class AppTest {
     }
 
     @Test
-    public void testJPA() throws Exception {
+    public void testHibernateJPA() throws Exception {
         final URL url = Thread.currentThread().getContextClassLoader().getResource("sample.sqlite");
         final String CONNECTION_STRING = String.format("jdbc:sqlite:%s", Paths.get(url.toURI()));
         Map<String, String> settings = new HashMap<>();
-        // settings.put("javax.persistence.jdbc.driver", "org.sqlite.JDBC");
         settings.put("javax.persistence.jdbc.url", CONNECTION_STRING);
+        settings.put("javax.persistence.provider", "org.hibernate.jpa.HibernatePersistenceProvider");
+        settings.put("hibernate.dialect", "org.hibernate.dialect.SQLiteDialect");
+        final String JPQL = "SELECT s FROM org.sqg.AppTest$Student s";
+
+        EntityManagerFactory emf = null;
+        EntityManager em = null;
+        try {
+            emf = Persistence.createEntityManagerFactory("User", settings);
+            em = emf.createEntityManager();
+            Student s = em.find(Student.class, 2);
+            if (s == null)
+                return;
+            LOGGER.info("origin is {}", s);
+            s.setAge(s.getAge() + 1);
+            em.getTransaction().begin();
+            em.merge(s);
+            em.getTransaction().commit();
+            LOGGER.info("update to {}", s);
+            em.refresh(s);
+            LOGGER.info("refresh to {}", s);
+            em.getTransaction().begin();
+            s.setAge(s.getAge() - 1);
+            em.merge(s);
+            em.getTransaction().commit();
+            LOGGER.info("update to {}", s);
+            em.refresh(s);
+            LOGGER.info("refresh to {}", s);
+            TypedQuery<Student> query = em.createQuery(JPQL, Student.class);
+            List<Student> students = query.getResultList();
+            for (Student student : students)
+                LOGGER.info("{}", student);
+        } finally {
+            if (em != null) {
+                if (em.getTransaction().isActive())
+                    em.getTransaction().rollback();
+                em.close();
+                em = null;
+            }
+            if (emf != null) {
+                emf.close();
+                emf = null;
+            }
+        }
+    }
+
+    @Test
+    public void testEclipseLinkJPA() throws Exception {
+        final URL url = Thread.currentThread().getContextClassLoader().getResource("sample.sqlite");
+        final String CONNECTION_STRING = String.format("jdbc:sqlite:%s", Paths.get(url.toURI()));
+        Map<String, String> settings = new HashMap<>();
+        settings.put("javax.persistence.jdbc.url", CONNECTION_STRING);
+        settings.put("javax.persistence.provider", "org.eclipse.persistence.jpa.PersistenceProvider");
         settings.put("hibernate.dialect", "org.hibernate.dialect.SQLiteDialect");
         final String JPQL = "SELECT s FROM org.sqg.AppTest$Student s";
 
