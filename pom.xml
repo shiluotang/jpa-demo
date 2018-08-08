@@ -21,6 +21,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
         <hibernate.version>5.1.15.Final</hibernate.version>
+        <eclipselink.version>2.7.0</eclipselink.version>
     </properties>
 
     <dependencies>
@@ -62,17 +63,19 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${hibernate.version}</version>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>${eclipselink.version}</version>
             <scope>runtime</scope>
         </dependency>
+
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
             <version>${hibernate.version}</version>
             <scope>runtime</scope>
         </dependency>
+
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
@@ -83,12 +86,6 @@
             <groupId>com.enigmabridge</groupId>
             <artifactId>hibernate4-sqlite-dialect</artifactId>
             <version>0.1.1</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.42</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
